@@ -1,5 +1,5 @@
 package analyzer
 
 type Analyzer interface {
-	analyze(code []string)
+	Analyze(code []string) error
 }
