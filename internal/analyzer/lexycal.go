@@ -96,16 +96,17 @@ func (l *Lexycal) Analyze(code []string) error {
 
 func (l *Lexycal) buildWord(i *int, line string) string {
 	word := ""
-	for endWord := *i + 1; endWord < len(line); endWord++ {
-		initWord := *i
+	initWord := *i
+	endWord := *i + 1
+	for ; endWord <= len(line); endWord++ {
 		fmt.Println(i, endWord, line[initWord:endWord])
 		if ok := l.MatchString(IS_WORD_OR_DIGIT, line[initWord:endWord]); ok {
 			word = line[initWord:endWord]
 		} else {
-			*i = endWord - 2
 			break
 		}
 	}
+	*i = endWord - 2
 	return word
 }
 
