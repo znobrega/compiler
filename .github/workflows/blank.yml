@@ -33,6 +33,9 @@ jobs:
       - name: Go tests
         run: go test ./...
         
+      - name: Go Lint
+        run: go fmt
+        
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: echo Hello, world!
