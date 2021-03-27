@@ -27,5 +27,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("compilation has finish")
+	log.Println("compilation has finished")
 }

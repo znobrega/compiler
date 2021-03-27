@@ -1,6 +1,8 @@
 package compiler
 
-import "github.com/znobrega/compiler/internal/analyzer"
+import (
+	"github.com/znobrega/compiler/internal/analyzer"
+)
 
 type Compiler struct {
 	Code            []string
@@ -17,7 +19,7 @@ func (c *Compiler) Build(code []string, lexical analyzer.Lexical) {
 }
 
 func (c *Compiler) Compile() error {
-	err := c.LexicalAnalyzer.Analyze(c.Code)
+	_, err := c.LexicalAnalyzer.Analyze(c.Code)
 	if err != nil {
 		return err
 	}
