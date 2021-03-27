@@ -34,7 +34,7 @@ jobs:
         run: go test ./...
         
       - name: Go Lint
-        run: go fmt
+        run: go fmt ./.. # dude, get a real linter 
         
       # Runs a single command using the runners shell
       - name: Run a one-line script
