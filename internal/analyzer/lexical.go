@@ -36,6 +36,9 @@ const (
 
 	COMENTARIO_AULA = "^//[\\w\\W]*"
 
+	IS_OPEN_COMMENT   = "^{$"
+	IS_CLOSED_COMMENT = "^}$"
+
 	IS_LETTER_OR_UNDERSCORE = "^[a-zA-Z_]+$"
 	IS_WORD_OR_DIGIT        = "^(\\w|\\d)+$"
 )
@@ -46,72 +49,160 @@ type Lexical struct {
 
 func NewLexical() Lexical { return Lexical{table: make([]entities.Symbol, 0)} }
 
-func (l Lexical) Analyze(code []string) error {
+func (l Lexical) Analyze(code []string) ([]entities.Symbol, error) {
 	log.Println("Lexical analyzes has started")
 
 	for lineNumber, line := range code {
 		log.Printf("line %d: %s", lineNumber+1, line)
-		for i := 0; i < len(line); i++ {
-			letter := string(line[i])
+		for letterIndex := 0; letterIndex < len(line); letterIndex++ {
+			letter := string(line[letterIndex])
 
 			if letter == " " {
 				continue
 			}
 
-			if ok := l.MatchString(IS_DELIMITER, letter); ok {
-				if i+2 <= len(line) && l.MatchString(IS_ASSIGNMENT_OPERATOR, line[i:i+2]) {
-					l.addSymbolToTable(line[i:i+2], "ATRIBUICAO", lineNumber)
-					i++
-				} else {
-					l.addSymbolToTable(letter, "DELIMITADOR", lineNumber)
-				}
-			} else if ok := l.MatchString(IS_RELACIONAL_OPERATOR, letter); ok {
-				if i+2 <= len(line) && l.MatchString(IS_ASSIGNMENT_OPERATOR, line[i:i+2]) {
-					l.addSymbolToTable(line[i:i+2], "OPERADORES RELACIONAIS", lineNumber)
-					i++
-				} else {
-					l.addSymbolToTable(letter, "OPERADORES RELACIONAIS", lineNumber)
-				}
-			} else if ok := l.MatchString(IS_ADDITION_OPERATORS, letter); ok {
-				l.addSymbolToTable(letter, "OPERADORES ADITIVOS", lineNumber)
-			} else if ok := l.MatchString(IS_MULTIPLIER_OPERATOR, letter); ok {
-				l.addSymbolToTable(letter, "OPERADORES MULTIPLICATIVOS", lineNumber)
-			} else if ok := l.MatchString(IS_LETTER_OR_UNDERSCORE, letter); ok {
-				word := l.buildWord(&i, line)
-				if ok, _ := regexp.MatchString(IS_KEY_WORD, word); ok {
-					l.addSymbolToTable(word, "PALAVRA CHAVE", lineNumber)
-				} else if ok, _ := regexp.MatchString(IS_IDENTIFIER, word); ok {
-					l.addSymbolToTable(word, "IDENTIFICADOR", lineNumber)
-				} else if ok, _ := regexp.MatchString(IS_OPERATOR_AND, word); ok {
-					l.addSymbolToTable(word, "OPERATOR AND", lineNumber)
-				} else if ok, _ := regexp.MatchString(IS_OPERATOR_OR, word); ok {
-					l.addSymbolToTable(word, "OPERATOR OR", lineNumber)
-				}
-			} else if ok := l.MatchString(IS_DIGIT, letter); ok {
-				word := l.buildNumber(&i, line)
-				if ok, _ := regexp.MatchString(IS_DIGIT, word); ok {
-					l.addSymbolToTable(word, "INTEGER", lineNumber)
-				} else if ok, _ := regexp.MatchString(IS_FLOAT, word); ok {
-					l.addSymbolToTable(word, "FLOAT", lineNumber)
-				}
-			} else {
-				log.Println("invalid symbol:", letter)
-				//return ErrInvalidSymbol
+			if l.isComment(letter, line, &letterIndex, lineNumber) {
+				continue
 			}
+
+			if l.isDelimiter(letter, line, &letterIndex, lineNumber) {
+				continue
+			}
+
+			if l.isRelacionalOrAssignmentOperator(letter, line, &letterIndex, lineNumber) {
+				continue
+			}
+
+			if l.isKeyWordOrIdentifierOrAndOr(letter, line, &letterIndex, lineNumber) {
+				continue
+			}
+
+			if l.isAdditionOperator(letter, line, &letterIndex, lineNumber) {
+				continue
+			}
+
+			if l.isMultiplierOperator(letter, line, &letterIndex, lineNumber) {
+				continue
+			}
+
+			if l.isNumber(letter, line, &letterIndex, lineNumber) {
+				continue
+			}
+
+			return nil, ErrInvalidSymbol
 		}
 	}
 
 	fmt.Println(l.table)
-	return nil
+	return l.table, nil
 }
 
-func (l *Lexical) buildWord(i *int, line string) string {
+func (l *Lexical) isComment(letter string, line string, letterIndex *int, lineNumber int) bool {
+	ok := l.MatchString(IS_OPEN_COMMENT, letter)
+	if !ok {
+		return false
+	}
+	comment := l.buildMultilineComment(letterIndex, line, IS_CLOSED_COMMENT)
+	l.addSymbolToTable(comment, "COMMENT", lineNumber)
+	return true
+}
+
+func (l *Lexical) isAdditionOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
+	ok := l.MatchString(IS_ADDITION_OPERATORS, letter)
+	if !ok {
+		return false
+	}
+	l.addSymbolToTable(letter, "OPERADORES ADITIVOS", lineNumber)
+	return true
+}
+
+func (l *Lexical) isMultiplierOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
+	ok := l.MatchString(IS_MULTIPLIER_OPERATOR, letter)
+	if !ok {
+		return false
+	}
+	l.addSymbolToTable(letter, "OPERADORES MULTIPLICATIVOS", lineNumber)
+	return true
+}
+
+func (l *Lexical) isDelimiter(letter string, line string, letterIndex *int, lineNumber int) bool {
+	ok := l.MatchString(IS_DELIMITER, letter)
+	if !ok {
+		return false
+	}
+	if *letterIndex+2 <= len(line) && l.MatchString(IS_ASSIGNMENT_OPERATOR, line[*letterIndex:*letterIndex+2]) {
+		l.addSymbolToTable(line[*letterIndex:*letterIndex+2], "ATRIBUICAO", lineNumber)
+		*letterIndex++
+	} else {
+		l.addSymbolToTable(letter, "DELIMITADOR", lineNumber)
+	}
+	return true
+}
+
+func (l *Lexical) isRelacionalOrAssignmentOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
+	ok := l.MatchString(IS_RELACIONAL_OPERATOR, letter)
+	if !ok {
+		return false
+
+	}
+
+	if *letterIndex+2 <= len(line) && l.MatchString(IS_ASSIGNMENT_OPERATOR, line[*letterIndex:*letterIndex+2]) {
+		l.addSymbolToTable(line[*letterIndex:*letterIndex+2], "OPERADORES RELACIONAIS", lineNumber)
+		*letterIndex++
+	} else {
+		l.addSymbolToTable(letter, "OPERADORES RELACIONAIS", lineNumber)
+	}
+	return true
+}
+
+func (l *Lexical) isNumber(letter string, line string, letterIndex *int, lineNumber int) bool {
+	ok := l.MatchString(IS_LETTER_OR_UNDERSCORE, letter)
+	if !ok {
+		return false
+	}
+
+	word := l.buildWord(letterIndex, line, IS_WORD_OR_DIGIT)
+	if ok, _ := regexp.MatchString(IS_KEY_WORD, word); ok {
+		l.addSymbolToTable(word, "PALAVRA CHAVE", lineNumber)
+		return true
+	} else if ok, _ := regexp.MatchString(IS_IDENTIFIER, word); ok {
+		l.addSymbolToTable(word, "IDENTIFICADOR", lineNumber)
+		return true
+	} else if ok, _ := regexp.MatchString(IS_OPERATOR_AND, word); ok {
+		l.addSymbolToTable(word, "OPERATOR AND", lineNumber)
+		return true
+	} else if ok, _ := regexp.MatchString(IS_OPERATOR_OR, word); ok {
+		l.addSymbolToTable(word, "OPERATOR OR", lineNumber)
+		return true
+	}
+	return false
+}
+
+func (l *Lexical) isKeyWordOrIdentifierOrAndOr(letter string, line string, letterIndex *int, lineNumber int) bool {
+	ok := l.MatchString(IS_DIGIT, letter)
+	if !ok {
+		return false
+	}
+
+	word := l.buildWord(letterIndex, line, IS_NUMBER)
+	if ok, _ := regexp.MatchString(IS_DIGIT, word); ok {
+		l.addSymbolToTable(word, "INTEGER", lineNumber)
+		return true
+	} else if ok, _ := regexp.MatchString(IS_FLOAT, word); ok {
+		l.addSymbolToTable(word, "FLOAT", lineNumber)
+		return true
+	}
+	return false
+}
+
+func (l *Lexical) buildWord(i *int, line string, pattern string) string {
 	word := ""
 	initWord := *i
 	endWord := *i + 1
+
 	for ; endWord <= len(line); endWord++ {
 		//fmt.Println(i, endWord, line[initWord:endWord])
-		if ok := l.MatchString(IS_WORD_OR_DIGIT, line[initWord:endWord]); ok {
+		if ok := l.MatchString(pattern, line[initWord:endWord]); ok {
 			word = line[initWord:endWord]
 		} else {
 			break
@@ -120,17 +211,17 @@ func (l *Lexical) buildWord(i *int, line string) string {
 	*i = endWord - 2
 	return word
 }
-
-func (l *Lexical) buildNumber(i *int, line string) string {
+func (l *Lexical) buildMultilineComment(i *int, line string, pattern string) string {
 	word := ""
 	initWord := *i
 	endWord := *i + 1
+
 	for ; endWord <= len(line); endWord++ {
-		fmt.Println(i, endWord, line[initWord:endWord])
-		if ok := l.MatchString(IS_NUMBER, line[initWord:endWord]); ok {
-			word = line[initWord:endWord]
-		} else {
+		//fmt.Println(i, endWord, line[initWord:endWord])
+		if ok := l.MatchString(pattern, line[endWord-2:endWord]); ok {
 			break
+		} else {
+			word = line[initWord:endWord]
 		}
 	}
 	*i = endWord - 2
