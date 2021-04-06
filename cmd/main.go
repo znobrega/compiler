@@ -19,9 +19,12 @@ func main() {
 	log.Println("code readed, number of lines:", len(code))
 
 	lexicalAnalyzer := analyzer.NewLexical()
+	syntacticAnalyzer := analyzer.NewSyntactic()
 
 	compiler := compiler.New()
-	compiler.Build(code, lexicalAnalyzer)
+	compiler.Build(code)
+	compiler.WithLexicalAnalyzer(lexicalAnalyzer)
+	compiler.WithSyntacticAnalyzer(syntacticAnalyzer)
 	err = compiler.Compile()
 	if err != nil {
 		log.Fatal(err)

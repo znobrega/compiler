@@ -3,6 +3,7 @@ package analyzer
 import (
 	"fmt"
 	"github.com/znobrega/compiler/internal/entities"
+	"github.com/znobrega/compiler/internal/infra"
 	"log"
 	"regexp"
 )
@@ -98,7 +99,7 @@ func (l Lexical) Analyze(code []string) ([]entities.Symbol, error) {
 }
 
 func (l *Lexical) isComment(letter string, line string, letterIndex *int, lineNumber int) bool {
-	ok := l.MatchString(IS_OPEN_COMMENT, letter)
+	ok := infra.MatchString(IS_OPEN_COMMENT, letter)
 	if !ok {
 		return false
 	}
@@ -108,7 +109,7 @@ func (l *Lexical) isComment(letter string, line string, letterIndex *int, lineNu
 }
 
 func (l *Lexical) isAdditionOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
-	ok := l.MatchString(IS_ADDITION_OPERATORS, letter)
+	ok := infra.MatchString(IS_ADDITION_OPERATORS, letter)
 	if !ok {
 		return false
 	}
@@ -117,7 +118,7 @@ func (l *Lexical) isAdditionOperator(letter string, line string, letterIndex *in
 }
 
 func (l *Lexical) isMultiplierOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
-	ok := l.MatchString(IS_MULTIPLIER_OPERATOR, letter)
+	ok := infra.MatchString(IS_MULTIPLIER_OPERATOR, letter)
 	if !ok {
 		return false
 	}
@@ -126,11 +127,11 @@ func (l *Lexical) isMultiplierOperator(letter string, line string, letterIndex *
 }
 
 func (l *Lexical) isDelimiter(letter string, line string, letterIndex *int, lineNumber int) bool {
-	ok := l.MatchString(IS_DELIMITER, letter)
+	ok := infra.MatchString(IS_DELIMITER, letter)
 	if !ok {
 		return false
 	}
-	if *letterIndex+2 <= len(line) && l.MatchString(IS_ASSIGNMENT_OPERATOR, line[*letterIndex:*letterIndex+2]) {
+	if *letterIndex+2 <= len(line) && infra.MatchString(IS_ASSIGNMENT_OPERATOR, line[*letterIndex:*letterIndex+2]) {
 		l.addSymbolToTable(line[*letterIndex:*letterIndex+2], "ATRIBUICAO", lineNumber)
 		*letterIndex++
 	} else {
@@ -140,13 +141,13 @@ func (l *Lexical) isDelimiter(letter string, line string, letterIndex *int, line
 }
 
 func (l *Lexical) isRelacionalOrAssignmentOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
-	ok := l.MatchString(IS_RELACIONAL_OPERATOR, letter)
+	ok := infra.MatchString(IS_RELACIONAL_OPERATOR, letter)
 	if !ok {
 		return false
 
 	}
 
-	if *letterIndex+2 <= len(line) && l.MatchString(IS_ASSIGNMENT_OPERATOR, line[*letterIndex:*letterIndex+2]) {
+	if *letterIndex+2 <= len(line) && infra.MatchString(IS_ASSIGNMENT_OPERATOR, line[*letterIndex:*letterIndex+2]) {
 		l.addSymbolToTable(line[*letterIndex:*letterIndex+2], "OPERADORES RELACIONAIS", lineNumber)
 		*letterIndex++
 	} else {
@@ -156,7 +157,7 @@ func (l *Lexical) isRelacionalOrAssignmentOperator(letter string, line string, l
 }
 
 func (l *Lexical) isNumber(letter string, line string, letterIndex *int, lineNumber int) bool {
-	ok := l.MatchString(IS_LETTER_OR_UNDERSCORE, letter)
+	ok := infra.MatchString(IS_LETTER_OR_UNDERSCORE, letter)
 	if !ok {
 		return false
 	}
@@ -179,7 +180,7 @@ func (l *Lexical) isNumber(letter string, line string, letterIndex *int, lineNum
 }
 
 func (l *Lexical) isKeyWordOrIdentifierOrAndOr(letter string, line string, letterIndex *int, lineNumber int) bool {
-	ok := l.MatchString(IS_DIGIT, letter)
+	ok := infra.MatchString(IS_DIGIT, letter)
 	if !ok {
 		return false
 	}
@@ -202,7 +203,7 @@ func (l *Lexical) buildWord(i *int, line string, pattern string) string {
 
 	for ; endWord <= len(line); endWord++ {
 		//fmt.Println(i, endWord, line[initWord:endWord])
-		if ok := l.MatchString(pattern, line[initWord:endWord]); ok {
+		if ok := infra.MatchString(pattern, line[initWord:endWord]); ok {
 			word = line[initWord:endWord]
 		} else {
 			break
@@ -218,7 +219,7 @@ func (l *Lexical) buildMultilineComment(i *int, line string, pattern string) str
 
 	for ; endWord <= len(line); endWord++ {
 		//fmt.Println(i, endWord, line[initWord:endWord])
-		if ok := l.MatchString(pattern, line[endWord-2:endWord]); ok {
+		if ok := infra.MatchString(pattern, line[endWord-2:endWord]); ok {
 			break
 		} else {
 			word = line[initWord:endWord]
@@ -226,15 +227,6 @@ func (l *Lexical) buildMultilineComment(i *int, line string, pattern string) str
 	}
 	*i = endWord - 2
 	return word
-}
-
-func (l *Lexical) MatchString(expression, letter string) bool {
-	ok, err := regexp.MatchString(expression, letter)
-	if err != nil {
-		// TODO REFACTOR ERROR TREATMENT
-		panic(err)
-	}
-	return ok
 }
 
 func (l *Lexical) addSymbolToTable(word string, classification string, i int) {
