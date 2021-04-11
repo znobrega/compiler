@@ -19,10 +19,25 @@ var (
 )
 
 const (
-	program       = "program|PROGRAM"
-	identificador = "identificador|IDENTIFICADOR"
-	semiColen     = ";"
-	dot           = "."
+	PROGRAM    = "program|PROGRAM"
+	IDENTIFIER = "identifier|IDENTIFICADOR"
+	SEMICOLEN  = ";"
+	DOT        = "."
+	PROCEDURE  = "procedure|PROCEDURE"
+	BEGIN      = "begin|BEGIN"
+	END        = "end|END"
+	VAR        = "var|VAR"
+	DO         = "do|DO"
+	WHILE      = "while|WHILE"
+	IF         = "if|IF"
+	THEN       = "then|THEN"
+	ELSE       = "else|ELSE"
+	TRUE       = "true|TRUE"
+	FALSE      = "false|FALSE"
+	NOT        = "not|NOT"
+	CASE       = "case|CASE"
+	OF         = "of|OF"
+	TIPO       = "integer|INTEGER|real|REAL|boolean|BOOLEAN|char|CHAR"
 )
 
 type Syntactic struct {
@@ -46,11 +61,11 @@ func (s *Syntactic) Analyze(table []entities.Symbol) error {
 }
 
 func (s *Syntactic) Program() error {
-	if infra.MatchString(s.currentSymbal.Token, program) {
+	if infra.MatchString(s.currentSymbal.Token, PROGRAM) {
 		s.getNextSymbol()
-		if infra.MatchString(s.currentSymbal.Classification, identificador) {
+		if infra.MatchString(s.currentSymbal.Classification, IDENTIFIER) {
 			s.getNextSymbol()
-			if s.currentSymbal.Token == semiColen {
+			if s.currentSymbal.Token == SEMICOLEN {
 				s.getNextSymbol()
 
 				err := s.VariableDeclaration()
@@ -66,7 +81,7 @@ func (s *Syntactic) Program() error {
 					return ErrCompostCommand
 				}
 
-				if s.currentSymbal.Token != dot {
+				if s.currentSymbal.Token != DOT {
 					return ErrIsNotDot
 				} else {
 					// SUCESS
@@ -84,6 +99,19 @@ func (s *Syntactic) Program() error {
 }
 
 func (s *Syntactic) VariableDeclaration() error {
+	if infra.MatchString(VAR, s.currentSymbal.Token) {
+		s.getNextSymbol()
+		return s.getVariables()
+	}
+	return nil
+}
+
+func (s *Syntactic) getVariables() error {
+	if infra.MatchString(IDENTIFIER, s.currentSymbal.Classification) {
+		s.getNextSymbol()
+
+		return s.getVariables()
+	}
 	return nil
 }
 

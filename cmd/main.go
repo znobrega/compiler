@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/znobrega/compiler/internal/analyzer"
 	"github.com/znobrega/compiler/internal/compiler"
 	"github.com/znobrega/compiler/internal/infra"
@@ -9,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Compiler")
+	log.Println("Compiler")
 
 	code, err := infra.ReadFile("code")
 	if err != nil {

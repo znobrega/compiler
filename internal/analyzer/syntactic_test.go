@@ -47,7 +47,7 @@ func TestSyntactic_Analyze(t *testing.T) {
 			},
 			args: args{
 				table: []entities.Symbol{
-					{"program", "PALAVRA CHAVE", 1},
+					{"PROGRAM", "PALAVRA CHAVE", 1},
 					{"teste", "IDENTIFICADOR", 1},
 					{";", "DELIMITADOR", 1},
 					{".", "DELIMITADOR", 2}},

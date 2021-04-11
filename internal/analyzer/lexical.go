@@ -9,23 +9,15 @@ import (
 )
 
 const (
-	//  comparacao comum a qualquer uma do conjunto de Strings
-	IS_KEY_WORD = "^(program|var|integer|real|boolean|procedure|begin|end|if|then|else|while|do|not|case|true|false)(;|\\.)?$"
-	//  \\w+ ===> qual letra ou digito seguinte. O primeiro caracter ja foi confirmado como letra
+	IS_KEY_WORD   = "^(program|var|integer|real|boolean|procedure|begin|end|if|then|else|while|do|not|case|true|false)(;|\\.)?$"
 	IS_IDENTIFIER = "\\_*\\w+[\\_\\w+]*"
-	//   | . | : | , | ( | ) ===> compara se e igual a alguma das Strings
-	IS_DELIMITER = "(;|\\.|:|,|\\(|\\))"
+	IS_DELIMITER  = "(;|\\.|:|,|\\(|\\))"
 	//  [^=] ===> deixar claro que o '=' de ':=' nao eh operador relacional
 	IS_RELACIONAL_OPERATOR = "=|<|>|<=|>=|<>"
-	//  +|- ===> String igual a + ou a -
-	IS_ADDITION_OPERATORS = "[+|-]"
-	//  or ===> comparacao comum de Strings
-	IS_OPERATOR_OR = "or"
-	//  *|/ ===> String igual a * ou a /
+	IS_ADDITION_OPERATORS  = "[+|-]"
+	IS_OPERATOR_OR         = "or"
 	IS_MULTIPLIER_OPERATOR = "\\*|/"
-	//  and ===> and, sem letra ou digito antes e depois
-	IS_OPERATOR_AND = "\\w{0}and\\w{0}"
-	//  := ===> comparacao comum de Strings
+	IS_OPERATOR_AND        = "\\w{0}and\\w{0}"
 	IS_ASSIGNMENT_OPERATOR = ":="
 	//  \\.? ===> encontrar ponto 0 ou 1 vez
 	IS_DIGIT = "^(\\d+)$"
@@ -62,31 +54,20 @@ func (l Lexical) Analyze(code []string) ([]entities.Symbol, error) {
 				continue
 			}
 
-			if l.isComment(letter, line, &letterIndex, lineNumber) {
+			switch {
+			case l.isComment(letter, line, &letterIndex, lineNumber):
 				continue
-			}
-
-			if l.isDelimiter(letter, line, &letterIndex, lineNumber) {
+			case l.isDelimiter(letter, line, &letterIndex, lineNumber):
 				continue
-			}
-
-			if l.isRelacionalOrAssignmentOperator(letter, line, &letterIndex, lineNumber) {
+			case l.isRelacionalOrAssignmentOperator(letter, line, &letterIndex, lineNumber):
 				continue
-			}
-
-			if l.isKeyWordOrIdentifierOrAndOr(letter, line, &letterIndex, lineNumber) {
+			case l.isKeyWordOrIdentifierOrAndOr(letter, line, &letterIndex, lineNumber):
 				continue
-			}
-
-			if l.isAdditionOperator(letter, line, &letterIndex, lineNumber) {
+			case l.isAdditionOperator(letter, line, &letterIndex, lineNumber):
 				continue
-			}
-
-			if l.isMultiplierOperator(letter, line, &letterIndex, lineNumber) {
+			case l.isMultiplierOperator(letter, line, &letterIndex, lineNumber):
 				continue
-			}
-
-			if l.isNumber(letter, line, &letterIndex, lineNumber) {
+			case l.isNumber(letter, line, &letterIndex, lineNumber):
 				continue
 			}
 
