@@ -6,6 +6,7 @@ import (
 	"github.com/znobrega/compiler/internal/infra"
 	"log"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -128,7 +129,7 @@ func (l *Lexical) isRelacionalOrAssignmentOperator(letter string, line string, l
 
 	}
 
-	if *letterIndex+2 <= len(line) && infra.MatchString(IS_ASSIGNMENT_OPERATOR, line[*letterIndex:*letterIndex+2]) {
+	if *letterIndex+2 <= len(line) && infra.MatchString(IS_RELACIONAL_OPERATOR, line[*letterIndex:*letterIndex+2]) {
 		l.addSymbolToTable(line[*letterIndex:*letterIndex+2], "OPERADORES RELACIONAIS", lineNumber)
 		*letterIndex++
 	} else {
@@ -185,7 +186,7 @@ func (l *Lexical) buildWord(i *int, line string, pattern string) string {
 	for ; endWord <= len(line); endWord++ {
 		//fmt.Println(i, endWord, line[initWord:endWord])
 		if ok := infra.MatchString(pattern, line[initWord:endWord]); ok {
-			word = line[initWord:endWord]
+			word = strings.ToLower(line[initWord:endWord])
 		} else {
 			break
 		}
