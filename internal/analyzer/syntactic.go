@@ -9,43 +9,40 @@ import (
 )
 
 var (
-	ErrSymbolsIsOver = errors.New("symbols is over  ")
-
+	ErrSymbolsIsOver          = errors.New("symbols is over  ")
 	ErrIsNotDot               = errors.New("expecting a dot")
 	ErrIsNotSemiColen         = errors.New("expecting a ; ")
 	ErrIsNotIdentifier        = errors.New("expecting a identifier")
 	ErrIsNotProgram           = errors.New("expecting a key word program")
 	ErrVariableDeclaration    = errors.New("variable declaration")
 	ErrSubProgramDeclaration  = errors.New("sub program declaration")
-	ErrCompostCommand         = errors.New("compost commanf")
+	ErrCompostCommand         = errors.New("compost command")
 	ErrVariableAlrealdyExists = errors.New("variable alrealdy exists")
 )
 
 const (
-	PROGRAM             = "program|PROGRAM"
-	IDENTIFIER          = "identifier|IDENTIFICADOR"
+	PROGRAM             = "program"
 	SEMICOLEN           = ";"
 	COLEN               = ":"
 	COMMAN              = ","
 	DOT                 = "\\."
 	DOT_VANILLA         = "."
-	PROCEDURE           = "procedure|PROCEDURE"
-	BEGIN               = "begin|BEGIN"
-	END                 = "end|END"
-	VAR                 = "var|VAR"
-	DO                  = "do|DO"
-	WHILE               = "while|WHILE"
-	IF                  = "if|IF"
-	THEN                = "then|THEN"
-	ELSE                = "else|ELSE"
-	TRUE                = "true|TRUE"
-	FALSE               = "false|FALSE"
-	NOT                 = "not|NOT"
-	CASE                = "case|CASE"
-	OF                  = "of|OF"
-	TYPES               = "integer|INTEGER|real|REAL|boolean|BOOLEAN|char|CHAR"
+	PROCEDURE           = "procedure"
+	BEGIN               = "begin"
+	END                 = "end"
+	VAR                 = "var"
+	DO                  = "do"
+	WHILE               = "while"
+	IF                  = "if"
+	THEN                = "then"
+	ELSE                = "else"
+	TRUE                = "true"
+	FALSE               = "false"
+	NOT                 = "not"
+	TYPES               = "integer|real|boolean|char"
 	OPEN_PARENTHESIS    = "\\("
 	CLOSE_PARENTHESIS   = "\\)"
+	IDENTIFIER          = "IDENTIFICADOR"
 	MULTIPLIER_OPERATOR = "OPERADORES MULTIPLICATIVOS"
 	ADDITION_OPERATOR   = "OPERADORES ADITIVOS"
 	RELATIONAL_OPERATOR = "OPERADORES RELACIONAIS"
@@ -136,19 +133,15 @@ func (s *Syntactic) getVariables() error {
 		if len(s.variables) == 0 {
 			return err
 		} else if infra.MatchString(BEGIN, s.currentSymbol.Token) {
-			log.Println("begin found")
+			// log.Println("begin found")
 			return nil
 		} else if infra.MatchString(PROCEDURE, s.currentSymbol.Token) {
-			log.Println("procedure found")
+			// log.Println("procedure found")
 			return nil
 		} else {
 			return err
 		}
 	}
-
-	//if err == nil && len(s.variables) == 0 {
-	//	return fmt.Errorf("if there is a var then are expect a variable name")
-	//}
 
 	s.getNextSymbol()
 
@@ -179,8 +172,6 @@ func (s *Syntactic) getVariableType() error {
 
 func (s *Syntactic) getVariablesNames() error {
 	if infra.MatchString(IDENTIFIER, s.currentSymbol.Classification) {
-		//
-
 		err := s.addVariableToList(s.currentSymbol.Token)
 		if err != nil {
 			return err
@@ -232,7 +223,6 @@ func (s *Syntactic) isSubProgram() error {
 		return err
 	}
 
-	// TODO ANALYZE COMPOST COMAND
 	err = s.CompostCommand()
 	if err != nil {
 		return err
@@ -379,6 +369,8 @@ func (s *Syntactic) checkCommands() error {
 		} else {
 			return s.checkCommands()
 		}
+	} else {
+		return formatError(SEMICOLEN, s.currentSymbol)
 	}
 
 	return fmt.Errorf("ERRO NO CHECK COMMANDS")
@@ -400,7 +392,7 @@ func (s *Syntactic) isCommand() error {
 				return formatError(ASSIGNMENT, s.currentSymbol)
 			}
 		}
-		// TODO TEST } else if comandoCompos()
+		// TODO TEST cases with comandoCompos()
 	} else if infra.MatchString(IF, s.currentSymbol.Token) {
 		s.getNextSymbol()
 		if s.isExpression() {
@@ -418,8 +410,13 @@ func (s *Syntactic) isCommand() error {
 			}
 		}
 	} else if infra.MatchString(WHILE, s.currentSymbol.Token) {
-		//TODO IMPLEMENT WHILE
-
+		s.getNextSymbol()
+		if s.isExpression() {
+			if infra.MatchString(DO, s.currentSymbol.Token) {
+				s.getNextSymbol()
+				return s.isCommand()
+			}
+		}
 	}
 	return fmt.Errorf("is not command")
 }
@@ -428,7 +425,7 @@ func (s *Syntactic) isProcedureActivation() bool {
 	s.getNextSymbol()
 	if infra.MatchString(OPEN_PARENTHESIS, s.currentSymbol.Token) {
 		s.getNextSymbol()
-		if s.listaDeExpressoes() {
+		if s.expressionList() {
 			if infra.MatchString(CLOSE_PARENTHESIS, s.currentSymbol.Token) {
 				s.getNextSymbol()
 				return true
@@ -438,15 +435,14 @@ func (s *Syntactic) isProcedureActivation() bool {
 			}
 		}
 	}
-	log.Print("its not a procedure")
 	return false
 }
 
-func (s *Syntactic) listaDeExpressoes() bool {
+func (s *Syntactic) expressionList() bool {
 	if s.isExpression() {
 		s.getNextSymbol()
 		if infra.MatchString(COMMAN, s.currentSymbol.Token) {
-			return s.listaDeExpressoes()
+			return s.expressionList()
 		}
 		s.bootstrapSymbol()
 		return true
@@ -460,14 +456,14 @@ func (s *Syntactic) factor() bool {
 		s.getNextSymbol()
 		if infra.MatchString(OPEN_PARENTHESIS, s.currentSymbol.Token) {
 			s.getNextSymbol()
-			if s.listaDeExpressoes() {
+			if s.expressionList() {
 				s.getNextSymbol()
 				if infra.MatchString(CLOSE_PARENTHESIS, s.currentSymbol.Token) {
-					// is expressio|procedure
 					return true
 				}
 			}
 		}
+		s.bootstrapSymbol()
 		return true
 	} else if infra.MatchString(IS_NUMBER, s.currentSymbol.Token) {
 		return true
@@ -509,36 +505,29 @@ func (s *Syntactic) isExpression() bool {
 }
 
 func (s *Syntactic) isSimpleExpression() bool {
-	if s.termo() {
+	if s.isTerm() {
 		if infra.MatchString(ADDITION_OPERATOR, s.currentSymbol.Classification) {
 			s.getNextSymbol()
 			return s.isSimpleExpression()
 		}
 		return true
 	} else if infra.MatchString(SINE, s.currentSymbol.Token) {
-		// TODO o termo pode ser: um número que recebe um sinal negativo antes. exemplo: -4
-
-		return s.termo()
+		// TODO o isTerm pode ser: um número que recebe um sinal negativo antes. exemplo: -4
+		return s.isTerm()
 	}
-	println("ERRO: é esperado pelo menos um termo")
+	println("ERRO: é esperado pelo menos um isTerm")
 	return false
 }
 
-// TODO DONE
-func (s *Syntactic) termo() bool {
-	/*
-	   pode ser apenas um fator. Se tiver um opMultiplicativo depois, então tem que ter um termo depois
-	   ,senão pode retornar true pois é apenas um fator.
-	*/
+func (s *Syntactic) isTerm() bool {
 	if s.factor() {
 		s.getNextSymbol()
 		if infra.MatchString(MULTIPLIER_OPERATOR, s.currentSymbol.Classification) {
 			s.getNextSymbol()
-			return s.termo()
+			return s.isTerm()
 		}
 		return true
 	}
-	log.Println("ERRO: problema no termo")
 	return false
 }
 

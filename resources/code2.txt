@@ -1,0 +1,21 @@
+program teste; {programa test}
+var
+    valor1: integer;
+    valor2: real;
+procedure p(a:integer; b:real);
+    var test: real;
+    begin
+        test := 2;
+    end;
+begin
+    p(1);
+    valor1 := 2;
+    IF 2 > 3 then
+        testIf := 999
+    ELSE
+        testIf := 2;
+
+    WHILE valor1 <> 10 DO
+        p(2);
+end.
+
