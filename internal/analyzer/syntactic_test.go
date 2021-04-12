@@ -52,7 +52,7 @@ func TestSyntactic_Analyze(t *testing.T) {
 					{";", "DELIMITADOR", 1},
 					{".", "DELIMITADOR", 2}},
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
