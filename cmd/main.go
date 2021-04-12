@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"github.com/znobrega/compiler/internal/analyzer"
 	"github.com/znobrega/compiler/internal/compiler"
 	"github.com/znobrega/compiler/internal/infra"
 	"log"
+	"time"
 )
 
 func main() {
-	fmt.Println("Compiler")
+	log.Println("Compiler")
 
-	code, err := infra.ReadFile("code")
+	code, err := infra.ReadFile("code2")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,13 +19,19 @@ func main() {
 	log.Println("code readed, number of lines:", len(code))
 
 	lexicalAnalyzer := analyzer.NewLexical()
+	syntacticAnalyzer := analyzer.NewSyntactic()
 
 	compiler := compiler.New()
-	compiler.Build(code, lexicalAnalyzer)
+	compiler.Build(code)
+	compiler.WithLexicalAnalyzer(lexicalAnalyzer)
+	compiler.WithSyntacticAnalyzer(syntacticAnalyzer)
+
+	initCompiler := time.Now()
 	err = compiler.Compile()
+	log.Printf("execution time: %v", time.Since(initCompiler))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("compilation has finished")
+	log.Println("compilation has finished succesfully")
 }

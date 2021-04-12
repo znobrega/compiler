@@ -120,10 +120,7 @@ func TestLexical_MatchString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := &Lexical{
-				table: tt.fields.table,
-			}
-			if got := l.MatchString(tt.args.expression, tt.args.letter); got != tt.want {
+			if got := infra.MatchString(tt.args.expression, tt.args.letter); got != tt.want {
 				t.Errorf("MatchString() = %v, want %v", got, tt.want)
 			}
 		})
