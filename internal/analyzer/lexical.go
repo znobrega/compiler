@@ -10,29 +10,21 @@ import (
 )
 
 const (
-	IS_KEY_WORD   = "^(program|var|integer|real|boolean|procedure|begin|end|if|then|else|while|do|not|case|true|false)(;|\\.)?$"
-	IS_IDENTIFIER = "\\_*\\w+[\\_\\w+]*"
-	IS_DELIMITER  = "(;|\\.|:|,|\\(|\\))"
-	//  [^=] ===> deixar claro que o '=' de ':=' nao eh operador relacional
-	IS_RELACIONAL_OPERATOR = "=|<|>|<=|>=|<>"
-	IS_ADDITION_OPERATORS  = "[+|-]"
-	IS_OPERATOR_OR         = "or"
-	IS_MULTIPLIER_OPERATOR = "\\*|/"
-	IS_OPERATOR_AND        = "\\w{0}and\\w{0}"
-	IS_ASSIGNMENT_OPERATOR = ":="
-	//  \\.? ===> encontrar ponto 0 ou 1 vez
-	IS_DIGIT = "^(\\d+)$"
-	//  \\.{1} ===> encontrar ponto exatamento 1 vez entre inteiros (ou no fim)
-	IS_FLOAT  = "^(\\d+\\.{1}\\d*)$"
-	IS_NUMBER = "^(\\d+(\\.)?\\d*)$"
-	//  [\\w\\W]* ===> palavra e digito, ou simbolo em qualquer ordem
-	COMMENT = "\\{{1}[\\w\\W]*\\}{1}"
-
-	COMENTARIO_AULA = "^//[\\w\\W]*"
-
-	IS_OPEN_COMMENT   = "^{$"
-	IS_CLOSED_COMMENT = "^}$"
-
+	IS_KEY_WORD             = "^(program|var|integer|real|boolean|procedure|begin|end|if|then|else|while|do|not|case|true|false)(;|\\.)?$"
+	IS_IDENTIFIER           = "\\_*\\w+[\\_\\w+]*"
+	IS_DELIMITER            = "(;|\\.|:|,|\\(|\\))"
+	IS_RELACIONAL_OPERATOR  = "=|<|>|<=|>=|<>"
+	IS_ADDITION_OPERATORS   = "[+|-]"
+	IS_OPERATOR_OR          = "or"
+	IS_MULTIPLIER_OPERATOR  = "\\*|/"
+	IS_OPERATOR_AND         = "\\w{0}and\\w{0}"
+	IS_ASSIGNMENT_OPERATOR  = ":="
+	IS_DIGIT                = "^(\\d+)$"
+	IS_FLOAT                = "^(\\d+\\.{1}\\d*)$"
+	IS_NUMBER               = "^(\\d+(\\.)?\\d*)$"
+	COMMENT                 = "\\{{1}[\\w\\W]*\\}{1}"
+	IS_OPEN_COMMENT         = "^{$"
+	IS_CLOSED_COMMENT       = "^}$"
 	IS_LETTER_OR_UNDERSCORE = "^[a-zA-Z_]+$"
 	IS_WORD_OR_DIGIT        = "^(\\w|\\d)+$"
 )
