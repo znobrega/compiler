@@ -165,7 +165,7 @@ func (s *Syntactic) getVariableType() error {
 			return fmt.Errorf("expecting a ; after type declaration")
 		}
 	} else {
-		return fmt.Errorf("expectiong a variable type line %s", s.currentSymbol.Line)
+		return fmt.Errorf("expectiong a variable type line %d", s.currentSymbol.Line)
 	}
 
 }

@@ -26,7 +26,7 @@ func TestSyntactic_Analyze(t *testing.T) {
 	type fields struct {
 		table         []entities.Symbol
 		index         int64
-		currentSymbal entities.Symbol
+		currentSymbol entities.Symbol
 	}
 	type args struct {
 		table []entities.Symbol
@@ -43,11 +43,11 @@ func TestSyntactic_Analyze(t *testing.T) {
 			fields: fields{
 				table:         nil,
 				index:         -1,
-				currentSymbal: entities.Symbol{},
+				currentSymbol: entities.Symbol{},
 			},
 			args: args{
 				table: []entities.Symbol{
-					{"PROGRAM", "PALAVRA CHAVE", 1},
+					{"program", "PALAVRA CHAVE", 1},
 					{"teste", "IDENTIFICADOR", 1},
 					{";", "DELIMITADOR", 1},
 					{".", "DELIMITADOR", 2}},
@@ -60,7 +60,7 @@ func TestSyntactic_Analyze(t *testing.T) {
 			s := &Syntactic{
 				table:         tt.fields.table,
 				index:         tt.fields.index,
-				currentSymbal: tt.fields.currentSymbal,
+				currentSymbol: tt.fields.currentSymbol,
 			}
 			if err := s.Analyze(tt.args.table); (err != nil) != tt.wantErr {
 				t.Errorf("Analyze() error = %v, wantErr %v", err, tt.wantErr)
@@ -73,7 +73,7 @@ func TestSyntactic_CompostCommand(t *testing.T) {
 	type fields struct {
 		table         []entities.Symbol
 		index         int64
-		currentSymbal entities.Symbol
+		currentSymbol entities.Symbol
 	}
 	tests := []struct {
 		name    string
@@ -87,7 +87,7 @@ func TestSyntactic_CompostCommand(t *testing.T) {
 			s := &Syntactic{
 				table:         tt.fields.table,
 				index:         tt.fields.index,
-				currentSymbal: tt.fields.currentSymbal,
+				currentSymbol: tt.fields.currentSymbol,
 			}
 			if err := s.CompostCommand(); (err != nil) != tt.wantErr {
 				t.Errorf("CompostCommand() error = %v, wantErr %v", err, tt.wantErr)
@@ -100,7 +100,7 @@ func TestSyntactic_Program(t *testing.T) {
 	type fields struct {
 		table         []entities.Symbol
 		index         int64
-		currentSymbal entities.Symbol
+		currentSymbol entities.Symbol
 	}
 	tests := []struct {
 		name    string
@@ -114,7 +114,7 @@ func TestSyntactic_Program(t *testing.T) {
 			s := &Syntactic{
 				table:         tt.fields.table,
 				index:         tt.fields.index,
-				currentSymbal: tt.fields.currentSymbal,
+				currentSymbol: tt.fields.currentSymbol,
 			}
 			if err := s.Program(); (err != nil) != tt.wantErr {
 				t.Errorf("Program() error = %v, wantErr %v", err, tt.wantErr)
@@ -127,7 +127,7 @@ func TestSyntactic_SubProgramDeclaration(t *testing.T) {
 	type fields struct {
 		table         []entities.Symbol
 		index         int64
-		currentSymbal entities.Symbol
+		currentSymbol entities.Symbol
 	}
 	tests := []struct {
 		name    string
@@ -141,7 +141,7 @@ func TestSyntactic_SubProgramDeclaration(t *testing.T) {
 			s := &Syntactic{
 				table:         tt.fields.table,
 				index:         tt.fields.index,
-				currentSymbal: tt.fields.currentSymbal,
+				currentSymbol: tt.fields.currentSymbol,
 			}
 			if err := s.SubProgramDeclaration(); (err != nil) != tt.wantErr {
 				t.Errorf("SubProgramDeclaration() error = %v, wantErr %v", err, tt.wantErr)
@@ -154,7 +154,7 @@ func TestSyntactic_VariableDeclaration(t *testing.T) {
 	type fields struct {
 		table         []entities.Symbol
 		index         int64
-		currentSymbal entities.Symbol
+		currentSymbol entities.Symbol
 	}
 	tests := []struct {
 		name    string
@@ -168,7 +168,7 @@ func TestSyntactic_VariableDeclaration(t *testing.T) {
 			s := &Syntactic{
 				table:         tt.fields.table,
 				index:         tt.fields.index,
-				currentSymbal: tt.fields.currentSymbal,
+				currentSymbol: tt.fields.currentSymbol,
 			}
 			if err := s.VariableDeclaration(); (err != nil) != tt.wantErr {
 				t.Errorf("VariableDeclaration() error = %v, wantErr %v", err, tt.wantErr)
@@ -181,7 +181,7 @@ func TestSyntactic_getNextSymbol(t *testing.T) {
 	type fields struct {
 		table         []entities.Symbol
 		index         int64
-		currentSymbal entities.Symbol
+		currentSymbol entities.Symbol
 	}
 	tests := []struct {
 		name   string
@@ -194,7 +194,7 @@ func TestSyntactic_getNextSymbol(t *testing.T) {
 			s := &Syntactic{
 				table:         tt.fields.table,
 				index:         tt.fields.index,
-				currentSymbal: tt.fields.currentSymbal,
+				currentSymbol: tt.fields.currentSymbol,
 			}
 
 			s.getNextSymbol()
