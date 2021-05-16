@@ -48,38 +48,47 @@ const (
 	RELATIONAL_OPERATOR = "OPERADORES RELACIONAIS"
 	ASSIGNMENT          = "ATRIBUICAO"
 	SINE                = "[+|-]"
+	BOOLEAN             = "boolean|integer_relacional|real_relacional"
 )
 
 type Syntactic struct {
-	table         []entities.Symbol
-	variables     []entities.Variable
-	procedures    []entities.Procedure
-	index         int64
-	currentSymbol entities.Symbol
-	beforeSymbol  entities.Symbol
+	table             []entities.Symbol
+	variables         []entities.Variable
+	procedures        []entities.Procedure
+	index             int64
+	currentSymbol     entities.Symbol
+	beforeSymbol      entities.Symbol
+	currentIdentifier entities.Identifier
+	semantic          Semantic
 }
 
 func NewSyntactic() Syntactic {
 	return Syntactic{
-		table:         nil,
-		index:         -1,
-		currentSymbol: entities.Symbol{},
-		beforeSymbol:  entities.Symbol{},
-		variables:     make([]entities.Variable, 0),
-		procedures:    make([]entities.Procedure, 0),
+		table:             nil,
+		index:             -1,
+		currentSymbol:     entities.Symbol{},
+		beforeSymbol:      entities.Symbol{},
+		variables:         make([]entities.Variable, 0),
+		procedures:        make([]entities.Procedure, 0),
+		currentIdentifier: entities.Identifier{},
+		semantic:          NewSemantic(),
 	}
 }
 
 func (s *Syntactic) Analyze(table []entities.Symbol) error {
 	s.table = table
 	s.getNextSymbol()
-	return s.Program()
+	return s.program()
 }
 
-func (s *Syntactic) Program() error {
+func (s *Syntactic) program() error {
 	if infra.MatchString(s.currentSymbol.Token, PROGRAM) {
+
 		s.getNextSymbol()
 		if infra.MatchString(s.currentSymbol.Classification, IDENTIFIER) {
+			s.currentIdentifier.Name = s.currentSymbol.Token
+			s.currentIdentifier.Type = "program"
+			s.semantic.checkProcedure(s.currentIdentifier)
 			s.getNextSymbol()
 			if s.currentSymbol.Token == SEMICOLEN {
 				s.getNextSymbol()
@@ -120,7 +129,23 @@ func (s *Syntactic) Program() error {
 func (s *Syntactic) VariableDeclaration() error {
 	if infra.MatchString(VAR, s.currentSymbol.Token) {
 		s.getNextSymbol()
-		return s.getVariables()
+		err := s.getVariables()
+		if err != nil {
+			return err
+		}
+
+		// TODO CHECK NECESSITY
+		//if s.semantic.isEmptyStack() {
+		//	if infra.MatchString(BEGIN, s.currentSymbol.Token) {
+		//	 // log.Println("begin found")
+		//		return nil
+		//} else if infra.MatchString(PROCEDURE, s.currentSymbol.Token) {
+		// // log.Println("procedure found")
+		// 	return nil
+		//} else {
+		//	return fmt.Errorf("after VAR is a variable is expected")
+		//}
+		//}
 	} else {
 		log.Println("there is not a variable declaration")
 	}
@@ -129,16 +154,20 @@ func (s *Syntactic) VariableDeclaration() error {
 
 func (s *Syntactic) getVariables() error {
 	err := s.getVariablesNames()
+	if infra.MatchString(BEGIN, s.currentSymbol.Token) {
+		// log.Println("begin found")
+		return nil
+	} else if infra.MatchString(PROCEDURE, s.currentSymbol.Token) {
+		// log.Println("procedure found")
+		return nil
+	}
 	if err != nil {
-		if len(s.variables) == 0 {
-			return err
-		} else if infra.MatchString(BEGIN, s.currentSymbol.Token) {
-			// log.Println("begin found")
-			return nil
-		} else if infra.MatchString(PROCEDURE, s.currentSymbol.Token) {
-			// log.Println("procedure found")
-			return nil
-		} else {
+		// TODO STRANGE
+		//if len(s.variables) == 0 {
+		//	return err
+		//} else
+
+		if err != nil {
 			return err
 		}
 	}
@@ -156,6 +185,7 @@ func (s *Syntactic) getVariableType() error {
 	if infra.MatchString(TYPES, s.currentSymbol.Token) {
 
 		s.addTypeToVariableList()
+		s.semantic.defineVariableType(s.currentSymbol.Token)
 
 		s.getNextSymbol()
 		if infra.MatchString(SEMICOLEN, s.currentSymbol.Token) {
@@ -172,10 +202,14 @@ func (s *Syntactic) getVariableType() error {
 
 func (s *Syntactic) getVariablesNames() error {
 	if infra.MatchString(IDENTIFIER, s.currentSymbol.Classification) {
-		err := s.addVariableToList(s.currentSymbol.Token)
-		if err != nil {
-			return err
+		s.currentIdentifier = entities.Identifier{Name: s.currentSymbol.Token}
+		if !s.semantic.checkVariable(s.currentIdentifier) {
+			return fmt.Errorf("error varible already exists")
 		}
+		//err := s.addVariableToList(s.currentSymbol.Token)
+		//if err != nil {
+		//	return err
+		//}
 		s.getNextSymbol()
 		if infra.MatchString(COMMAN, s.currentSymbol.Token) {
 			s.getNextSymbol()
@@ -239,6 +273,11 @@ func (s *Syntactic) getProcedureId() error {
 	if infra.MatchString(PROCEDURE, s.currentSymbol.Token) {
 		s.getNextSymbol()
 		if infra.MatchString(IDENTIFIER, s.currentSymbol.Classification) {
+
+			if !s.semantic.checkProcedure(entities.Identifier{Name: s.currentSymbol.Token, Type: s.beforeSymbol.Token}) {
+				return fmt.Errorf("error procedure")
+			}
+
 			procedure := entities.Procedure{Name: s.currentSymbol.Token, Arguments: make([]entities.Variable, 0)}
 			s.getNextSymbol()
 
@@ -288,6 +327,7 @@ func (s *Syntactic) getArguments(procedure *entities.Procedure) error {
 
 	if infra.MatchString(IDENTIFIER, s.currentSymbol.Classification) {
 		argumentName := s.currentSymbol.Token
+		s.semantic.checkVariable(entities.Identifier{Name: argumentName})
 		s.getNextSymbol()
 		if infra.MatchString(COLEN, s.currentSymbol.Token) {
 			s.getNextSymbol()
@@ -297,7 +337,7 @@ func (s *Syntactic) getArguments(procedure *entities.Procedure) error {
 					Name: argumentName,
 					Type: argumentType,
 				})
-
+				s.semantic.defineVariableType(argumentType)
 				s.getNextSymbol()
 				if infra.MatchString(CLOSE_PARENTHESIS, s.currentSymbol.Token) {
 					s.getNextSymbol()
@@ -331,7 +371,7 @@ func (s *Syntactic) CompostCommand() error {
 	} else if !infra.MatchString(BEGIN, s.currentSymbol.Token) {
 		return formatError(BEGIN, s.currentSymbol)
 	}
-
+	s.semantic.initScope()
 	s.getNextSymbol()
 
 	err := s.optionalsCommands()
@@ -340,6 +380,7 @@ func (s *Syntactic) CompostCommand() error {
 	}
 
 	if infra.MatchString(END, s.currentSymbol.Token) {
+		s.semantic.endScope()
 		s.getNextSymbol()
 		return nil
 	}
@@ -363,6 +404,7 @@ func (s *Syntactic) checkCommands() error {
 	}
 
 	if infra.MatchString(SEMICOLEN, s.currentSymbol.Token) {
+		s.semantic.clearCommand()
 		s.getNextSymbol()
 		if infra.MatchString(END, s.currentSymbol.Token) {
 			return nil
@@ -377,13 +419,22 @@ func (s *Syntactic) checkCommands() error {
 }
 
 func (s *Syntactic) isCommand() error {
+	s.currentIdentifier.Name = s.currentSymbol.Token
+	s.currentIdentifier.Type = ""
 	if infra.MatchString(IDENTIFIER, s.currentSymbol.Classification) {
 		if s.isProcedureActivation() {
 			return nil
 		} else {
 			if infra.MatchString(ASSIGNMENT, s.currentSymbol.Classification) {
+				s.semantic.clearCommand()
+				s.semantic.checkVariable(s.currentIdentifier)
+				finalExpressionType := s.semantic.commandType
+				s.semantic.clearCommand()
 				s.getNextSymbol()
 				if s.isExpression() {
+					if !s.semantic.checkFinalType(finalExpressionType, s.semantic.commandType) {
+						return fmt.Errorf("wrong expression")
+					}
 					return nil
 				} else {
 					return fmt.Errorf("expecting a expression")
@@ -396,11 +447,17 @@ func (s *Syntactic) isCommand() error {
 	} else if infra.MatchString(IF, s.currentSymbol.Token) {
 		s.getNextSymbol()
 		if s.isExpression() {
+			if !infra.MatchString(BOOLEAN, s.semantic.commandType) {
+				return fmt.Errorf("command if must to be a boolean")
+			}
+
 			if infra.MatchString(THEN, s.currentSymbol.Token) {
+				s.semantic.clearCommand()
 				s.getNextSymbol()
 				if err := s.isCommand(); err == nil {
 					//s.getNextSymbol()
 					if infra.MatchString(ELSE, s.currentSymbol.Token) {
+						s.semantic.clearCommand()
 						s.getNextSymbol()
 						return s.isCommand()
 					} else {
@@ -412,6 +469,10 @@ func (s *Syntactic) isCommand() error {
 	} else if infra.MatchString(WHILE, s.currentSymbol.Token) {
 		s.getNextSymbol()
 		if s.isExpression() {
+			if !infra.MatchString(BOOLEAN, s.semantic.commandType) {
+				return fmt.Errorf("command while must to be a boolean")
+			}
+
 			if infra.MatchString(DO, s.currentSymbol.Token) {
 				s.getNextSymbol()
 				return s.isCommand()
@@ -422,9 +483,18 @@ func (s *Syntactic) isCommand() error {
 }
 
 func (s *Syntactic) isProcedureActivation() bool {
+	s.currentIdentifier = entities.Identifier{
+		Name: s.currentSymbol.Token,
+		Type: "procedure",
+	}
 	s.getNextSymbol()
 	if infra.MatchString(OPEN_PARENTHESIS, s.currentSymbol.Token) {
 		s.getNextSymbol()
+		if !s.semantic.checkProcedure(s.currentIdentifier) {
+			log.Println("procedure error checkProcedure")
+			return false
+		}
+
 		if s.expressionList() {
 			if infra.MatchString(CLOSE_PARENTHESIS, s.currentSymbol.Token) {
 				s.getNextSymbol()
@@ -448,11 +518,16 @@ func (s *Syntactic) expressionList() bool {
 		return true
 	}
 
-	log.Println("ERRO: problema na lista de expressões.")
+	log.Println("problema na lista de expressões.")
 	return false
 }
 func (s *Syntactic) factor() bool {
+	s.currentIdentifier = entities.Identifier{
+		Name: s.currentSymbol.Token,
+		Type: "",
+	}
 	if infra.MatchString(IDENTIFIER, s.currentSymbol.Classification) {
+		s.semantic.checkVariable(s.currentIdentifier)
 		s.getNextSymbol()
 		if infra.MatchString(OPEN_PARENTHESIS, s.currentSymbol.Token) {
 			s.getNextSymbol()
@@ -465,11 +540,17 @@ func (s *Syntactic) factor() bool {
 		}
 		s.bootstrapSymbol()
 		return true
+	} else if infra.MatchString(IS_DIGIT, s.currentSymbol.Token) {
+		s.semantic.typeAnalyses("integer")
+		return true
 	} else if infra.MatchString(IS_NUMBER, s.currentSymbol.Token) {
+		s.semantic.typeAnalyses("real")
 		return true
 	} else if infra.MatchString(TRUE, s.currentSymbol.Token) {
+		s.semantic.typeAnalyses("boolean")
 		return true
 	} else if infra.MatchString(FALSE, s.currentSymbol.Token) {
+		s.semantic.typeAnalyses("boolean")
 		return true
 	} else if infra.MatchString(OPEN_PARENTHESIS, s.currentSymbol.Token) {
 		s.getNextSymbol()
@@ -496,6 +577,7 @@ func (s *Syntactic) factor() bool {
 func (s *Syntactic) isExpression() bool {
 	if s.isSimpleExpression() {
 		if infra.MatchString(RELATIONAL_OPERATOR, s.currentSymbol.Classification) {
+			s.semantic.typeAnalyses(s.currentSymbol.Token)
 			s.getNextSymbol()
 			return s.isSimpleExpression()
 		}
@@ -523,6 +605,7 @@ func (s *Syntactic) isTerm() bool {
 	if s.factor() {
 		s.getNextSymbol()
 		if infra.MatchString(MULTIPLIER_OPERATOR, s.currentSymbol.Classification) {
+			s.semantic.typeAnalyses(s.currentSymbol.Token)
 			s.getNextSymbol()
 			return s.isTerm()
 		}

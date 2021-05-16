@@ -50,9 +50,9 @@ func (l Lexical) Analyze(code []string) ([]entities.Symbol, error) {
 			switch {
 			case l.isComment(letter, line, &letterIndex, lineNumber):
 				continue
-			case l.isDelimiter(letter, line, &letterIndex, lineNumber):
+			case l.isDelimiterOrAssignmentOperator(letter, line, &letterIndex, lineNumber):
 				continue
-			case l.isRelacionalOrAssignmentOperator(letter, line, &letterIndex, lineNumber):
+			case l.isRelacional(letter, line, &letterIndex, lineNumber):
 				continue
 			case l.isKeyWordOrIdentifierOrAndOr(letter, line, &letterIndex, lineNumber):
 				continue
@@ -100,7 +100,7 @@ func (l *Lexical) isMultiplierOperator(letter string, line string, letterIndex *
 	return true
 }
 
-func (l *Lexical) isDelimiter(letter string, line string, letterIndex *int, lineNumber int) bool {
+func (l *Lexical) isDelimiterOrAssignmentOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
 	ok := infra.MatchString(IS_DELIMITER, letter)
 	if !ok {
 		return false
@@ -114,7 +114,7 @@ func (l *Lexical) isDelimiter(letter string, line string, letterIndex *int, line
 	return true
 }
 
-func (l *Lexical) isRelacionalOrAssignmentOperator(letter string, line string, letterIndex *int, lineNumber int) bool {
+func (l *Lexical) isRelacional(letter string, line string, letterIndex *int, lineNumber int) bool {
 	ok := infra.MatchString(IS_RELACIONAL_OPERATOR, letter)
 	if !ok {
 		return false

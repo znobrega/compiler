@@ -295,8 +295,8 @@ func TestLexical_isDelimiter(t *testing.T) {
 			l := &Lexical{
 				table: tt.fields.table,
 			}
-			if got := l.isDelimiter(tt.args.letter, tt.args.line, tt.args.letterIndex, tt.args.lineNumber); got != tt.want {
-				t.Errorf("isDelimiter() = %v, want %v", got, tt.want)
+			if got := l.isDelimiterOrAssignmentOperator(tt.args.letter, tt.args.line, tt.args.letterIndex, tt.args.lineNumber); got != tt.want {
+				t.Errorf("isDelimiterOrAssignmentOperator() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -415,8 +415,8 @@ func TestLexical_isRelacionalOrAssignmentOperator(t *testing.T) {
 			l := &Lexical{
 				table: tt.fields.table,
 			}
-			if got := l.isRelacionalOrAssignmentOperator(tt.args.letter, tt.args.line, tt.args.letterIndex, tt.args.lineNumber); got != tt.want {
-				t.Errorf("isRelacionalOrAssignmentOperator() = %v, want %v", got, tt.want)
+			if got := l.isRelacional(tt.args.letter, tt.args.line, tt.args.letterIndex, tt.args.lineNumber); got != tt.want {
+				t.Errorf("isRelacional() = %v, want %v", got, tt.want)
 			}
 		})
 	}

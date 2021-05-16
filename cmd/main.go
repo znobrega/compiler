@@ -11,7 +11,7 @@ import (
 func main() {
 	log.Println("Compiler")
 
-	code, err := infra.ReadFile("code2")
+	code, err := infra.ReadFile("code3")
 	if err != nil {
 		log.Fatal(err)
 	}
